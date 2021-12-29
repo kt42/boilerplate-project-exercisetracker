@@ -40,22 +40,91 @@ const userSchema = new Schema({
   username: String,
 });
 
-const userModel = mongoose.model("Users", userSchema);
+const UserModel = mongoose.model("Users", userSchema);
 
 app.get("/api/users", (req, res) => {
   console.error("not sure");
-  userModel.find({}, function (err, docs) {
-    return res.send(docs)
+  UserModel.find({}, function (err, docs) {
+    return res.json(docs)
   });
+
+});
+
+// Setup mongoose schema and model
+const exerciseSchema = new Schema({
+  description: String,
+  duration: Number,
+  date: Date,
+});
+
+var ExerciseModel = mongoose.model('Exercise', exerciseSchema);
+
+app.post("/api/users/:_id/exercises", (req, res) => {
+  
+  console.log("1111");
+  console.log("777", req.body.description, req.body.duration, req.params._id, req.body._id, req.body.date);
+
+  if(!req.body.description) {
+    return res.json("Path `description` is required.")
+  }
+  if(!req.body.duration) {
+    return res.json("Path `duration` is required.")
+  }
+
+  if(!req.body.date){ // no date enetered
+    console.log("2222");
+    var date_formatted = new Date();
+  }
+  else{ // a date entered
+    var date_formatted = new Date(req.body.date);      // returns a Date object if valid, or a string literal "Invalid Date" if invalid
+    // console.log(date_formatted);
+    if (date_formatted.toString() === "Invalid Date"){   // so if invalid date exit
+      console.log("Incorrect date format")
+      return res.json({error: "Incorrect date format"})
+    } // if vaild date nothing needed to be done
+  }
+
+
+  // check if user id exists
+  UserModel.findById(req.params._id, function (err, user)
+  {
+    if (err) {return res.json({err});}
+    else if (user)
+    {
+      console.log(2345234, user);
+      // make the doc (model instance) 
+      var exerciseDoc = new ExerciseModel({  
+        description: req.body.description, 
+        duration: req.body.duration,
+        date: date_formatted
+      })
+      console.log(exerciseDoc);
+
+      // save the doc
+      exerciseDoc.save(function (err2, doc) 
+      {
+        if (err2) {console.log("error saving"); return res.json({err});}
+        else if (doc)
+        {
+          console.log("saved successfully")
+          return res.json({"_id": user._id, "username": user.username, "date":doc.date.toDateString(), "duration": doc.duration, "description":doc.description})
+        }
+        else{console.log("???555")}
+      });
+    }
+    else{console.log("???666")};
+  });
+  
+
 
 });
 
 app.post("/api/users", (req, res) => {
   
-  console.error("not xgbsdgwergerf");
+  console.log("not aaaa");
 
   // save the user with this id
-  const doc = userModel.findOneAndUpdate(
+  const doc = UserModel.findOneAndUpdate(
     { username: req.body.username }, 
     {}, // not needed -- only the username and id are needed for a new record
     {upsert: true, new: true},
