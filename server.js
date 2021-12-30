@@ -35,6 +35,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
+
 // Setup mongoose schema and model
 const userSchema = new Schema({
   username: String,
@@ -46,7 +47,7 @@ const exerciseSchema = new Schema({
   theUser: { type: mongoose.ObjectId, required: true },
   description: String,
   duration: Number,
-  date: String,
+  date: Date,
 });
 var ExerciseModel = mongoose.model('Exercise', exerciseSchema);
 
@@ -57,23 +58,58 @@ app.get("/api/users", (req, res) => {
   });
 });
 
-app.get("/api/users/:_id/logs", (req, res) => 
+app.get("/api/users/:_id/logs/:from?/:to?/:limit?", (req, res) => 
 {
-  console.error("not sure");
-  // check if user id exists
+  // ** These are known as "Query Params" as opposed to "URL Params"
+  // either a value or undefined
+  // console.error("not sure", req.query.day, req.query.month);
+  console.error("not sure", req.params.from, req.params.to, req.params.limit);
+
+  
+  var fromDateObj = new Date(req.params.from);
+  var toDatObj = new Date(req.params.to);
+
+  // check if user id exists first
   UserModel.findById(req.params._id, function (err, user)
   {
     if (err) {return res.json({err});}
     else if (user)
     {
-      ExerciseModel.find({theUser: user._id}, function (err2, exercises) 
+      var query = {theUser: user._id} // need at lease the id in the query
+
+      // check if dates + a limit were entered
+      if(req.params.from && req.params.to && req.params.limit)
+      { // check if dates + limit are valid
+        if (fromDateObj.toString() === "Invalid Date" && toDatObj.toString() === "Invalid Date" && !Number.isInteger(req.params.limit))
+        {
+          console.log("Incorrect date format or non integer limit entered")
+          // return res.json({error: "Incorrect date format"}) // no need to end the process here, just return the full list
+        }
+        else{
+          // update the query if vaild dates + a valid boolean limit were entered
+          query.date = {"$gte": fromDateObj, "$lte": toDatObj};
+        }
+      }
+
+      console.log(123456789, query);
+
+      ExerciseModel.find(query, function (err2, exercises) 
       {
         if (err2) {return res.json({err2});}
         else if (exercises)
-        {
-          return res.json({"_id": user._id, "username": user.username, "count": exercises.length, "log": exercises})
+        {                          
+          //console.log(1111111, exercises)                       //// JUST GOING TO FUCKING LOG THEM AS IS    
+          //console.log(2222222, Object.prototype.toString.call(exercises[0]))
+          //var ff = new Date();
+          //console.log(555555, Object.prototype.toString.call(ff))
+          // interesting -- I used new Date when some dates wer'nt stored as Date objects 
+          //-- It converted them if not already Dates but caused no effect if already a Date, 
+          // perfect for solving, allowed me to continue test - kind of used like validator / convertor.. nice
+          const exercisesWithEditedDate = exercises.map(x => ({ ...x, date: x.date.toDateString()})); 
+          console.log(3333333, exercisesWithEditedDate);
+          return res.json({"_id": user._id, "username": user.username, "count": exercises.length, "log": exercisesWithEditedDate})
         };
-      });
+      }).select('-_id description duration date').limit(parseInt(req.params.limit)).lean(); // confirmed - if I don't use lean() a mongoose object is returned, contains "InternalCache" properties etc.. in each object in the array, with .lean() its a simple object.
     }
   });
 });
@@ -92,12 +128,12 @@ app.post("/api/users/:_id/exercises", (req, res) => {
 
   if(!req.body.date){ // no date enetered
     console.log("2222");
-    var date_formatted = new Date();
+    var enteredDateObj = new Date();
   }
   else{ // a date entered
-    var date_formatted = new Date(req.body.date);      // returns a Date object if valid, or a string literal "Invalid Date" if invalid
-    // console.log(date_formatted);
-    if (date_formatted.toString() === "Invalid Date"){   // so if invalid date exit
+    var enteredDateObj = new Date(req.body.date);      // returns a Date object if valid, or a string literal "Invalid Date" if invalid
+    // console.log(enteredDateObj);
+    if (enteredDateObj.toString() === "Invalid Date"){   // so if invalid date exit
       console.log("Incorrect date format")
       return res.json({error: "Incorrect date format"})
     } // if vaild date nothing needed to be done
@@ -115,7 +151,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
         theUser: user._id,
         description: req.body.description, 
         duration: req.body.duration,
-        date: date_formatted.toDateString()
+        date: enteredDateObj
       })
       console.log(999999, exerciseDoc);
 
