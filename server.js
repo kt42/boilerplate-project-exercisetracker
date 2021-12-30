@@ -132,7 +132,7 @@ app.get("/api/users/:_id/logs", (req, res) =>
           // perfect for solving, allowed me to continue test - kind of used like validator / convertor.. nice
           const exercisesWithEditedDate = exercises.map(x => ({ ...x, date: x.date.toDateString()})); 
           console.log(3333333, exercisesWithEditedDate);
-          return res.json({"_id": user._id, "username": user.username, from: fromDateObj.toDateString(), to: toDatObj.toDateString(), "count": exercises.length, "log": exercisesWithEditedDate})
+          return res.json({"_id": user._id, "username": user.username, from: new Date(fromDateObj).toDateString(), to: new Date(toDatObj).toDateString(), "count": exercises.length, "log": exercisesWithEditedDate})
         };
       }).select('-_id description duration date').limit(limitNum).lean(); // confirmed - if I don't use lean() a mongoose object is returned, contains "InternalCache" properties etc.. in each object in the array, with .lean() its a simple object.
     }
