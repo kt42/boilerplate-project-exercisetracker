@@ -168,7 +168,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
         else if (doc)
         {
           console.log("saved successfully")
-          return res.json({"_id": user._id, "username": user.username, "date":doc.date, "duration": doc.duration, "description":doc.description})
+          return res.json({"_id": user._id, "username": user.username, "date":doc.date.toDateString(), "duration": doc.duration, "description":doc.description})
         }
         else{console.log("???555")}
       });
