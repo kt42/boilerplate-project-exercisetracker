@@ -91,6 +91,12 @@ app.get("/api/users/:_id/logs/:from?/:to?/:limit?", (req, res) =>
         }
       }
 
+      var limitNum = 100;
+
+      if(req.params.limit){
+        limitNum = parseInt(req.params.limit);
+      }
+
       console.log(123456789, query);
 
       ExerciseModel.find(query, function (err2, exercises) 
@@ -109,7 +115,7 @@ app.get("/api/users/:_id/logs/:from?/:to?/:limit?", (req, res) =>
           console.log(3333333, exercisesWithEditedDate);
           return res.json({"_id": user._id, "username": user.username, "count": exercises.length, "log": exercisesWithEditedDate})
         };
-      }).select('-_id description duration date').limit(parseInt(req.params.limit)).lean(); // confirmed - if I don't use lean() a mongoose object is returned, contains "InternalCache" properties etc.. in each object in the array, with .lean() its a simple object.
+      }).select('-_id description duration date').limit(limitNum).lean(); // confirmed - if I don't use lean() a mongoose object is returned, contains "InternalCache" properties etc.. in each object in the array, with .lean() its a simple object.
     }
   });
 });
