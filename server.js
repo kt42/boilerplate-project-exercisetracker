@@ -73,6 +73,12 @@ app.get("/api/users/:_id/logs", (req, res) =>
 
   console.log(req.query.from, req.query.to, req.query.limit);
 
+  
+  // if(req.query.from || req.query.to || req.query.limit);{ // if one exists
+  //   if(!req.query.from || !req.query.to || !req.query.limit){ // but anouter doesn't exist
+  //   } 
+  // }
+
   var fromDateObj;
   var toDatObj;
   var limitNum = 100; // default max 100 records can be returned
@@ -97,7 +103,7 @@ app.get("/api/users/:_id/logs", (req, res) =>
         }
 
         //check they are valid
-        if (fromDateObj.toString() === "Invalid Date" || toDatObj.toString() === "Invalid Date" || !Number.isInteger(req.query.limit))
+        if (fromDateObj.toString() === "Invalid Date" || toDatObj.toString() === "Invalid Date")
         {
           console.log("Incorrect date format or non integer limit entered")
           // return res.json({error: "Incorrect date format"}) // no need to end the process here, just return the full list
@@ -126,7 +132,7 @@ app.get("/api/users/:_id/logs", (req, res) =>
           // perfect for solving, allowed me to continue test - kind of used like validator / convertor.. nice
           const exercisesWithEditedDate = exercises.map(x => ({ ...x, date: x.date.toDateString()})); 
           console.log(3333333, exercisesWithEditedDate);
-          return res.json({"_id": user._id, "username": user.username, "count": exercises.length, "log": exercisesWithEditedDate})
+          return res.json({"_id": user._id, "username": user.username, from: fromDateObj.toDateString(), to: toDatObj.toDateString(), "count": exercises.length, "log": exercisesWithEditedDate})
         };
       }).select('-_id description duration date').limit(limitNum).lean(); // confirmed - if I don't use lean() a mongoose object is returned, contains "InternalCache" properties etc.. in each object in the array, with .lean() its a simple object.
     }
