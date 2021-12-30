@@ -39,25 +39,44 @@ app.get('/', (req, res) => {
 const userSchema = new Schema({
   username: String,
 });
-
 const UserModel = mongoose.model("Users", userSchema);
+
+// Setup mongoose schema and model
+const exerciseSchema = new Schema({
+  theUser: { type: mongoose.ObjectId, required: true },
+  description: String,
+  duration: Number,
+  date: String,
+});
+var ExerciseModel = mongoose.model('Exercise', exerciseSchema);
 
 app.get("/api/users", (req, res) => {
   console.error("not sure");
   UserModel.find({}, function (err, docs) {
     return res.json(docs)
   });
-
 });
 
-// Setup mongoose schema and model
-const exerciseSchema = new Schema({
-  description: String,
-  duration: Number,
-  date: Date,
+app.get("/api/users/:_id/logs", (req, res) => 
+{
+  console.error("not sure");
+  // check if user id exists
+  UserModel.findById(req.params._id, function (err, user)
+  {
+    if (err) {return res.json({err});}
+    else if (user)
+    {
+      ExerciseModel.find({theUser: user._id}, function (err2, exercises) 
+      {
+        if (err2) {return res.json({err2});}
+        else if (exercises)
+        {
+          return res.json({"_id": user._id, "username": user.username, "count": exercises.length, "log": exercises})
+        };
+      });
+    }
+  });
 });
-
-var ExerciseModel = mongoose.model('Exercise', exerciseSchema);
 
 app.post("/api/users/:_id/exercises", (req, res) => {
   
@@ -84,21 +103,21 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     } // if vaild date nothing needed to be done
   }
 
-
   // check if user id exists
   UserModel.findById(req.params._id, function (err, user)
   {
     if (err) {return res.json({err});}
     else if (user)
     {
-      console.log(2345234, user);
+      console.log(2345234, typeof user._id);
       // make the doc (model instance) 
       var exerciseDoc = new ExerciseModel({  
+        theUser: user._id,
         description: req.body.description, 
         duration: req.body.duration,
-        date: date_formatted
+        date: date_formatted.toDateString()
       })
-      console.log(exerciseDoc);
+      console.log(999999, exerciseDoc);
 
       // save the doc
       exerciseDoc.save(function (err2, doc) 
@@ -107,7 +126,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
         else if (doc)
         {
           console.log("saved successfully")
-          return res.json({"_id": user._id, "username": user.username, "date":doc.date.toDateString(), "duration": doc.duration, "description":doc.description})
+          return res.json({"_id": user._id, "username": user.username, "date":doc.date, "duration": doc.duration, "description":doc.description})
         }
         else{console.log("???555")}
       });
