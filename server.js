@@ -82,6 +82,9 @@ app.get("/api/users/:_id/logs", (req, res) =>
   var fromDateObj;
   var toDatObj;
   var limitNum = 100; // default max 100 records can be returned
+  if(req.query.limit){
+    limitNum = parseInt(req.query.limit);
+  }
 
   // check if user id exists first
   UserModel.findById(req.params._id, function (err, user)
@@ -97,10 +100,6 @@ app.get("/api/users/:_id/logs", (req, res) =>
         // Grab the dates + limit 
         fromDateObj = new Date(req.query.from);
         toDatObj = new Date(req.query.to);
-
-        if(req.query.limit){
-          limitNum = parseInt(req.query.limit);
-        }
 
         //check they are valid
         if (fromDateObj.toString() === "Invalid Date" || toDatObj.toString() === "Invalid Date")
