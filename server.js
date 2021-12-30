@@ -11,6 +11,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
+// request logger
+app.use(function (req, res, next) {
+  var log = req.method + " " + req.path + " - " + req.ip;
+  console.log(log);
+  next();
+});
+
 // setup mongoose
 const mongoose = require("mongoose");
 const { application } = require('express');
@@ -64,6 +71,7 @@ app.get("/api/users/:_id/logs", (req, res) =>
   // console.error("not sure", req.query.day, req.query.month);
   // console.error("not sure", req.params.from, req.params.to, req.params.limit);
 
+  console.log(req.query.from, req.query.to, req.query.limit);
 
   var fromDateObj;
   var toDatObj;
@@ -89,7 +97,7 @@ app.get("/api/users/:_id/logs", (req, res) =>
         }
 
         //check they are valid
-        if (fromDateObj.toString() === "Invalid Date" && toDatObj.toString() === "Invalid Date" && !Number.isInteger(req.query.limit))
+        if (fromDateObj.toString() === "Invalid Date" || toDatObj.toString() === "Invalid Date" || !Number.isInteger(req.query.limit))
         {
           console.log("Incorrect date format or non integer limit entered")
           // return res.json({error: "Incorrect date format"}) // no need to end the process here, just return the full list
