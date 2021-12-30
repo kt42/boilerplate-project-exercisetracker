@@ -58,16 +58,16 @@ app.get("/api/users", (req, res) => {
   });
 });
 
-app.get("/api/users/:_id/logs/:from?/:to?/:limit?", (req, res) => 
+app.get("/api/users/:_id/logs", (req, res) => 
 {
-  // ** These are known as "Query Params" as opposed to "URL Params"
-  // either a value or undefined
+  // ** There are "Query Params" or "URL Params"
   // console.error("not sure", req.query.day, req.query.month);
-  console.error("not sure", req.params.from, req.params.to, req.params.limit);
+  // console.error("not sure", req.params.from, req.params.to, req.params.limit);
 
-  
-  var fromDateObj = new Date(req.params.from);
-  var toDatObj = new Date(req.params.to);
+
+  var fromDateObj;
+  var toDatObj;
+  var limitNum = 100; // default max 100 records can be returned
 
   // check if user id exists first
   UserModel.findById(req.params._id, function (err, user)
@@ -75,12 +75,21 @@ app.get("/api/users/:_id/logs/:from?/:to?/:limit?", (req, res) =>
     if (err) {return res.json({err});}
     else if (user)
     {
-      var query = {theUser: user._id} // need at lease the id in the query
+      var query = {theUser: user._id} // need at leaset the id in the query
 
       // check if dates + a limit were entered
-      if(req.params.from && req.params.to && req.params.limit)
-      { // check if dates + limit are valid
-        if (fromDateObj.toString() === "Invalid Date" && toDatObj.toString() === "Invalid Date" && !Number.isInteger(req.params.limit))
+      if(req.query.from && req.query.to && req.query.limit)
+      { 
+        // Grab the dates + limit 
+        fromDateObj = new Date(req.query.from);
+        toDatObj = new Date(req.query.to);
+
+        if(req.query.limit){
+          limitNum = parseInt(req.query.limit);
+        }
+
+        //check they are valid
+        if (fromDateObj.toString() === "Invalid Date" && toDatObj.toString() === "Invalid Date" && !Number.isInteger(req.query.limit))
         {
           console.log("Incorrect date format or non integer limit entered")
           // return res.json({error: "Incorrect date format"}) // no need to end the process here, just return the full list
@@ -91,11 +100,7 @@ app.get("/api/users/:_id/logs/:from?/:to?/:limit?", (req, res) =>
         }
       }
 
-      var limitNum = 100;
-
-      if(req.params.limit){
-        limitNum = parseInt(req.params.limit);
-      }
+      
 
       console.log(123456789, query);
 
