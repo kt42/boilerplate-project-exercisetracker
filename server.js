@@ -44,10 +44,8 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
-// Setup mongoose schema and model
-const userSchema = new Schema({
-  username: String,
-});
+
+
 
 // Setup mongoose schema and model
 const userSchema = new Schema({
