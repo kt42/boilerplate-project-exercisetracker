@@ -21,10 +21,6 @@ app.use(function (req, res, next) {
 });
 
 
-// asdfasdfasdfsd
-//sdfasdfasdf3241234123412341234123423
-
-//sasdfasdf
 
 // setup mongoose
 const mongoose = require("mongoose");
