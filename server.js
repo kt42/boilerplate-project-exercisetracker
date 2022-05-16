@@ -10,6 +10,17 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+<<<<<<< HEAD
+=======
+
+// request logger
+app.use(function (req, res, next) {
+  var log = req.method + " " + req.path + " - " + req.ip;
+  console.log(log);
+  next();
+});
+
+>>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
 // setup mongoose
 const mongoose = require("mongoose");
 const { application } = require('express');
@@ -39,6 +50,7 @@ const userSchema = new Schema({
   username: String,
 });
 
+<<<<<<< HEAD
 const userModel = mongoose.model("Users", userSchema);
 
 app.get("/api/users", (req, res) => {
@@ -47,14 +59,176 @@ app.get("/api/users", (req, res) => {
     return res.json({docs})
   });
 
+=======
+// Setup mongoose schema and model
+const userSchema = new Schema({
+  username: String,
+});
+const UserModel = mongoose.model("Users", userSchema);
+
+// Setup mongoose schema and model
+const exerciseSchema = new Schema({
+  theUser: { type: mongoose.ObjectId, required: true },
+  description: String,
+  duration: Number,
+  date: Date,
+});
+var ExerciseModel = mongoose.model('Exercise', exerciseSchema);
+
+app.get("/api/users", (req, res) => {
+  console.error("not sure");
+  UserModel.find({}, function (err, docs) {
+    return res.json(docs)
+  });
+});
+
+app.get("/api/users/:_id/logs", (req, res) => 
+{
+  // ** There are "Query Params" or "URL Params"
+  // console.error("not sure", req.query.day, req.query.month);
+  // console.error("not sure", req.params.from, req.params.to, req.params.limit);
+
+  console.log(req.query.from, req.query.to, req.query.limit);
+
+  
+  // if(req.query.from || req.query.to || req.query.limit);{ // if one exists
+  //   if(!req.query.from || !req.query.to || !req.query.limit){ // but anouter doesn't exist
+  //   } 
+  // }
+
+  var fromDateObj;
+  var toDatObj;
+  var limitNum = 100; // default max 100 records can be returned
+  if(req.query.limit){
+    limitNum = parseInt(req.query.limit);
+  }
+
+  // check if user id exists first
+  UserModel.findById(req.params._id, function (err, user)
+  {
+    if (err) {return res.json({err});}
+    else if (user)
+    {
+      var query = {theUser: user._id} // need at leaset the id in the query
+
+      // check if dates + a limit were entered
+      if(req.query.from && req.query.to && req.query.limit)
+      { 
+        // Grab the dates + limit 
+        fromDateObj = new Date(req.query.from);
+        toDatObj = new Date(req.query.to);
+
+        //check they are valid
+        if (fromDateObj.toString() === "Invalid Date" || toDatObj.toString() === "Invalid Date")
+        {
+          console.log("Incorrect date format or non integer limit entered")
+          // return res.json({error: "Incorrect date format"}) // no need to end the process here, just return the full list
+        }
+        else{
+          // update the query if vaild dates + a valid boolean limit were entered
+          query.date = {"$gte": fromDateObj, "$lte": toDatObj};
+        }
+      }
+
+      
+
+      console.log(123456789, query);
+
+      ExerciseModel.find(query, function (err2, exercises) 
+      {
+        if (err2) {return res.json({err2});}
+        else if (exercises)
+        {                          
+          //console.log(1111111, exercises)                       //// JUST GOING TO FUCKING LOG THEM AS IS    
+          //console.log(2222222, Object.prototype.toString.call(exercises[0]))
+          //var ff = new Date();
+          //console.log(555555, Object.prototype.toString.call(ff))
+          // interesting -- I used new Date when some dates wer'nt stored as Date objects 
+          //-- It converted them if not already Dates but caused no effect if already a Date, 
+          // perfect for solving, allowed me to continue test - kind of used like validator / convertor.. nice
+          const exercisesWithEditedDate = exercises.map(x => ({ ...x, date: x.date.toDateString()})); 
+          console.log(3333333, exercisesWithEditedDate);
+          return res.json({"_id": user._id, "username": user.username, from: new Date(fromDateObj).toDateString(), to: new Date(toDatObj).toDateString(), "count": exercises.length, "log": exercisesWithEditedDate})
+        };
+      }).select('-_id description duration date').limit(limitNum).lean(); // confirmed - if I don't use lean() a mongoose object is returned, contains "InternalCache" properties etc.. in each object in the array, with .lean() its a simple object.
+    }
+  });
+});
+
+app.post("/api/users/:_id/exercises", (req, res) => {
+  
+  console.log("1111");
+  console.log("777", req.body.description, req.body.duration, req.params._id, req.body._id, req.body.date);
+
+  if(!req.body.description) {
+    return res.json("Path `description` is required.")
+  }
+  if(!req.body.duration) {
+    return res.json("Path `duration` is required.")
+  }
+
+  if(!req.body.date){ // no date enetered
+    console.log("2222");
+    var enteredDateObj = new Date();
+  }
+  else{ // a date entered
+    var enteredDateObj = new Date(req.body.date);      // returns a Date object if valid, or a string literal "Invalid Date" if invalid
+    // console.log(enteredDateObj);
+    if (enteredDateObj.toString() === "Invalid Date"){   // so if invalid date exit
+      console.log("Incorrect date format")
+      return res.json({error: "Incorrect date format"})
+    } // if vaild date nothing needed to be done
+  }
+
+  // check if user id exists
+  UserModel.findById(req.params._id, function (err, user)
+  {
+    if (err) {return res.json({err});}
+    else if (user)
+    {
+      console.log(2345234, typeof user._id);
+      // make the doc (model instance) 
+      var exerciseDoc = new ExerciseModel({  
+        theUser: user._id,
+        description: req.body.description, 
+        duration: req.body.duration,
+        date: enteredDateObj
+      })
+      console.log(999999, exerciseDoc);
+
+      // save the doc
+      exerciseDoc.save(function (err2, doc) 
+      {
+        if (err2) {console.log("error saving"); return res.json({err});}
+        else if (doc)
+        {
+          console.log("saved successfully")
+          return res.json({"_id": user._id, "username": user.username, "date":doc.date.toDateString(), "duration": doc.duration, "description":doc.description})
+        }
+        else{console.log("???555")}
+      });
+    }
+    else{console.log("???666")};
+  });
+  
+
+
+>>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
 });
 
 app.post("/api/users", (req, res) => {
   
+<<<<<<< HEAD
   console.error("not xgbsdgwergerf");
 
   // save the user with this id
   const doc = userModel.findOneAndUpdate(
+=======
+  console.log("not aaaa");
+
+  // save the user with this id
+  const doc = UserModel.findOneAndUpdate(
+>>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
     { username: req.body.username }, 
     {}, // not needed -- only the username and id are needed for a new record
     {upsert: true, new: true},
@@ -91,7 +265,10 @@ app.post("/api/users", (req, res) => {
   // And also then if no record is found and "upsert: true"  it will then create an entire record. 
   // So findOneAndUpdate() essentially becomes find one and if nothing is found create one. This is very nice as it only uses 1 db request.
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
