@@ -264,11 +264,6 @@ app.post("/api/users", (req, res) => {
   // So, by setting all the Update Paramaters to $setOnInsert you effectivly prevent findOneAndUpdate() from ever updating anything. So then if a record is found it won't update anything - it will simply return the record. (the query/filter isn't used to update unless nothing is found).
   // And also then if no record is found and "upsert: true"  it will then create an entire record. 
   // So findOneAndUpdate() essentially becomes find one and if nothing is found create one. This is very nice as it only uses 1 db request.
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
