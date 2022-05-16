@@ -10,8 +10,8 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-<<<<<<< HEAD
-=======
+
+
 
 // request logger
 app.use(function (req, res, next) {
@@ -20,7 +20,6 @@ app.use(function (req, res, next) {
   next();
 });
 
->>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
 // setup mongoose
 const mongoose = require("mongoose");
 const { application } = require('express');
@@ -50,16 +49,6 @@ const userSchema = new Schema({
   username: String,
 });
 
-<<<<<<< HEAD
-const userModel = mongoose.model("Users", userSchema);
-
-app.get("/api/users", (req, res) => {
-  console.error("not sure");
-  userModel.find({}, function (err, docs) {
-    return res.json({docs})
-  });
-
-=======
 // Setup mongoose schema and model
 const userSchema = new Schema({
   username: String,
@@ -197,6 +186,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
       console.log(999999, exerciseDoc);
 
       // save the doc
+      
       exerciseDoc.save(function (err2, doc) 
       {
         if (err2) {console.log("error saving"); return res.json({err});}
@@ -213,22 +203,14 @@ app.post("/api/users/:_id/exercises", (req, res) => {
   
 
 
->>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
 });
 
 app.post("/api/users", (req, res) => {
   
-<<<<<<< HEAD
-  console.error("not xgbsdgwergerf");
-
-  // save the user with this id
-  const doc = userModel.findOneAndUpdate(
-=======
   console.log("not aaaa");
 
   // save the user with this id
   const doc = UserModel.findOneAndUpdate(
->>>>>>> 989ff7f402b6059a3ae74c2b082a41c6dc77c338
     { username: req.body.username }, 
     {}, // not needed -- only the username and id are needed for a new record
     {upsert: true, new: true},
@@ -265,6 +247,10 @@ app.post("/api/users", (req, res) => {
   // And also then if no record is found and "upsert: true"  it will then create an entire record. 
   // So findOneAndUpdate() essentially becomes find one and if nothing is found create one. This is very nice as it only uses 1 db request.
 });
+
+
+
+
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port http://localhost:' + listener.address().port)
