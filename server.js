@@ -10,8 +10,7 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
-
+// commit checkpoint test
 
 // request logger
 app.use(function (req, res, next) {
@@ -20,7 +19,7 @@ app.use(function (req, res, next) {
   next();
 });
 
-
+// commit checkpoint test
 
 // setup mongoose
 const mongoose = require("mongoose");
@@ -33,12 +32,17 @@ mongoose.connect(process.env["MONGO_URI"], {
   useUnifiedTopology: true,
 });
 
+// commit checkpoint test 2
+
 // checking connection
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
   console.log("Database connected");
 });
+
+
+// commit checkpoint test 3
 
 app.use(cors())
 app.use(express.static('public'))
